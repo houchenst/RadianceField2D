@@ -1,0 +1,7 @@
+imagepath = .\\data\\circle.png
+expname = example
+drop-alpha = false
+epochs = 10
+save-frequency = 1
+use-posenc = true
+n-freqs = 5
