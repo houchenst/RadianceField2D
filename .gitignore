@@ -1,4 +1,5 @@
 data/
 experiments/
 configs/
+comparisons/
 __pycache__/

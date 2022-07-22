@@ -21,8 +21,8 @@ def train(model, dataloader, optimizer, config):
     #TODO training loop
     loss_fn = torch.nn.MSELoss()
     model = model.to(config.device)
-    model.train()
     for e in range(config.epochs):
+        model.train()
         print(f"----------  EPOCH {e+1}/{config.epochs}  ----------")
         train_losses = []
         for batch in tqdm(dataloader):
@@ -81,6 +81,7 @@ def render_image(model, config):
     '''
     Renders the image from the radiance field
     '''
+    model.eval()
     coords = []
     for i in range(config.ydim):
         for j in range(config.xdim):
@@ -110,6 +111,7 @@ def plot_loss_curve(config, loss_dict):
     ax.plot([x for x in range(len(loss_history['val_loss']))], loss_history['val_loss'], color='b', label='val')
     f.suptitle(config.expname + " Loss")
     plt.savefig(os.path.join(config.expdir, "loss_curves.png"))
+    plt.close()
 
 def make_video(config):
     '''
@@ -152,6 +154,7 @@ def setup(config):
     model = RadianceField2D(config).to(device)
     if last_checkpoint is not None:
         model.load_state_dict(torch.load(last_checkpoint, map_location=device)["model_state_dict"])
+        print(f"Loading model from checkpoint: '{last_checkpoint}'")
     optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
     if last_checkpoint is not None:
         optimizer.load_state_dict(torch.load(last_checkpoint, map_location=device)["optimizer_state_dict"])
