@@ -11,6 +11,10 @@ class RadianceField2D(nn.Module):
             first_layer = nn.Linear(4*config.n_freqs, config.hidden_size)
         intermediate_layers = []
         for _ in range(config.n_layers-2):
+            if config.layer_norm:
+                intermediate_layers.append(nn.LayerNorm(config.hidden_size))
+            elif config.batch_norm:
+                intermediate_layers.append(nn.BatchNorm1d(config.hidden_size, affine=False))
             intermediate_layers.append(nn.Linear(config.hidden_size, config.hidden_size))
         final_layer = nn.Linear(config.hidden_size, 3)
         self.layers = nn.ModuleList([first_layer] + intermediate_layers + [final_layer])

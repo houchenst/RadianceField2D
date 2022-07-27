@@ -1,4 +1,4 @@
-imagepath = .\\data\\circle.png
+imagepath = .\data\circle.png
 expname = example
 drop-alpha = false
 epochs = 10

@@ -10,6 +10,8 @@ parser.add_argument("--expname", type=str, required=True)
 # Network Configuration
 parser.add_argument("--n-layers", type=int, default=4)
 parser.add_argument("--hidden-size", type=int, default=256)
+parser.add_argument("--layer-norm", action="store_true", help="Uses layer normalization")
+parser.add_argument("--batch-norm", action="store_true", help="Uses batch normalization")
 
 # Data Settings
 parser.add_argument("--drop-alpha", action="store_true", help="Drops the alpha channel from input images")
