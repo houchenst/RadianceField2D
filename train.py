@@ -1,7 +1,8 @@
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from torchgeometry.losses import SSIM
+from skimage.metrics import structural_similarity as ssim
+from skimage.metrics import mean_squared_error as mse
 import os
 import glob
 import json
@@ -29,7 +30,7 @@ def train(model, dataloader, optimizer, config):
     img = np.array(img)
     if config.drop_alpha:
         img = img[:, :, :-1]
-    img = torch.tensor(np.expand_dims(img, 0)).to(torch.float32)
+
 
     for e in range(config.epochs):
         model.train()
@@ -83,11 +84,8 @@ def save(model, optimizer, epoch, loss_dict, mse_dict, ssim_dict, config, img):
         # TODO: inference, save image
         learned_img = (render_image(model, config)*255).astype(np.uint8)
 
-        input_img = torch.tensor(np.expand_dims(learned_img, 0)).to(torch.float32)
-        mse = torch.nn.MSELoss(reduction="mean")
-        mse_dict["train_mse"].append(float(mse(input_img, img)))
-        ssim = SSIM(11, reduction="mean")
-        ssim_dict["train_ssim"].append(float(ssim(input_img, img)))
+        mse_dict["train_mse"].append(float(mse(learned_img, img)))
+        ssim_dict["train_ssim"].append(float(ssim(learned_img, img, gaussian_weights=True, channel_axis=2, data_range=255)))
 
         learned_img = Image.fromarray(learned_img)
         learned_img.save(os.path.join(config.expdir, "reconstructions", f"{config.expname}_e{epoch:06}.png"))
