@@ -24,13 +24,15 @@ def train(model, dataloader, optimizer, config):
     loss_fn = torch.nn.MSELoss()
     model = model.to(config.device)
 
-    mse_dict = {"train_mse": [], "val_mse": []}
-    ssim_dict = {"train_ssim": [], "val_ssim": []}
+
     img = Image.open(config.imagepath)
     img = np.array(img)
     if config.drop_alpha:
         img = img[:, :, :-1]
 
+    mse_dict = load_history(config, "mse")
+    loss_dict = load_history(config, "loss")
+    ssim_dict = load_history(config, "ssim")
 
     for e in range(config.epochs):
         model.train()
@@ -46,9 +48,7 @@ def train(model, dataloader, optimizer, config):
             loss.backward()
             optimizer.step()
             train_losses.append(loss.detach().cpu().numpy())
-        loss_dict = {}
-        loss_dict["train_loss"] = [float(np.mean(train_losses))]
-        loss_dict["val_loss"] = []
+            loss_dict["train_loss"].append(float(np.mean(train_losses)))
 
         save(model, optimizer, e, loss_dict, mse_dict, ssim_dict, config, img)
 
@@ -70,7 +70,7 @@ def save(model, optimizer, epoch, loss_dict, mse_dict, ssim_dict, config, img):
     Only saves checkpoint and images during certain epochs
     '''
 
-    print(f"Epoch training loss: {loss_dict['train_loss'][0]:.4f}")
+    print(f"Epoch training loss: {loss_dict['train_loss'][-1]:.4f}")
     plot_loss_curve(config, loss_dict)
 
     if epoch % config.save_frequency == 0:
@@ -95,7 +95,7 @@ def save(model, optimizer, epoch, loss_dict, mse_dict, ssim_dict, config, img):
         plot_metrics_curve(config, ssim_dict, "ssim")
         save_history(config, mse_dict, "mse")
         save_history(config, ssim_dict, "ssim")
-
+        save_history(config, loss_dict, "loss")
 
 def render_image(model, config):
     '''
@@ -118,6 +118,7 @@ def render_image(model, config):
 
 
 def plot_metrics_curve(config, dict, type):
+
     f, ax = plt.subplots()
     ax.plot([x for x in range(len(dict['train_' + type]))], dict['train_' + type], color='b', label='train')
     ax.plot([x for x in range(len(dict['val_' + type]))], dict['val_' + type], color='r', label='val')
@@ -130,10 +131,11 @@ def plot_loss_curve(config, loss_dict):
     '''
     Plots the loss curve and writes to file
     '''
-    loss_history = load_history(config, "loss")
-    loss_history['train_loss'] += loss_dict['train_loss']
-    loss_history['val_loss'] += loss_dict['val_loss']
-    save_history(config, loss_history, "loss")
+    # loss_history = load_history(config, "loss")
+    # loss_history['train_loss'] += loss_dict['train_loss']
+    # loss_history['val_loss'] += loss_dict['val_loss']
+    # save_history(config, loss_history, "loss")
+    loss_history = loss_dict
     f, ax = plt.subplots()
     ax.plot([x for x in range(len(loss_history['train_loss']))], loss_history['train_loss'], color='b', label='train')
     ax.plot([x for x in range(len(loss_history['val_loss']))], loss_history['val_loss'], color='b', label='val')
@@ -194,6 +196,20 @@ def setup(config):
         loss_history["val_loss"] = []
         with open(os.path.join(config.expdir, "loss_history.txt"), 'w') as f:
             f.write(json.dumps(loss_history))
+
+    if not os.path.exists(os.path.join(config.expdir, "mse_history.txt")):
+        mse_history = {}
+        mse_history["train_mse"] = []
+        mse_history["val_mse"] = []
+        with open(os.path.join(config.expdir, "mse_history.txt"), 'w') as f:
+            f.write(json.dumps(mse_history))
+
+    if not os.path.exists(os.path.join(config.expdir, "ssim_history.txt")):
+        ssim_history = {}
+        ssim_history["train_ssim"] = []
+        ssim_history["val_ssim"] = []
+        with open(os.path.join(config.expdir, "ssim_history.txt"), 'w') as f:
+            f.write(json.dumps(ssim_history))
 
     # Make data loader
     dataset = ImageDataset(config)
