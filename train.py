@@ -24,7 +24,6 @@ def train(model, dataloader, optimizer, config):
     loss_fn = torch.nn.MSELoss()
     model = model.to(config.device)
 
-
     img = Image.open(config.imagepath)
     img = np.array(img)
     if config.drop_alpha:

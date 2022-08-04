@@ -102,7 +102,7 @@ def compare_weights(exp1, exp2, max_diff_manual=None):
         diff = np.abs(m1w - m2w)
         aspect = 1.
         if len(diff.shape) == 1:
-            diff = diff[:,None]
+            diff = diff[:, None]
             aspect = 1./(diff.shape[0]/4.)
         elif diff.shape[0] < 10:
             aspect = diff.shape[1]/10.

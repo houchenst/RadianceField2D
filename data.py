@@ -61,7 +61,7 @@ class ImageDataset(Dataset):
             for j in range(img.shape[1]):
                 self.coords.append(torch.tensor(positional_encoding(pixel_to_continuous_coordinate(img.shape[:2], i, j), config), dtype=torch.float32))
                 self.colors.append(torch.tensor(img[i,j], dtype=torch.float32))
-        print(len(self))
+        # print(len(self))
         
     def __len__(self):
         return len(self.colors)
