@@ -32,6 +32,25 @@ def pixel_to_continuous_1d(dim_size, idx, padding, offset):
     pos = 2*pos - 1. #translate/scale to be between -1 and 1
     return pos
 
+def continuous_to_pixel_1d(coord, dim_size, padding):
+    '''
+    Outputs the nearest pixel coordinate to a continuous location (in 1 dimension)
+    '''
+    pixel_width = (1.-padding)/dim_size
+    offset = padding/2.
+    pix = (coord-offset)/pixel_width
+    pix = int(pix)
+    return pix
+
+def continuous_to_pixel_coordinate(dims, y_loc, x_loc):
+    height, width = dims
+    large_dim = max(height, width)
+    y_padding = (large_dim-height)/large_dim
+    x_padding = (large_dim-width)/large_dim
+    y_idx = height-continuous_to_pixel_1d(y_loc, height, y_padding)
+    x_idx = continuous_to_pixel_1d(x_loc, width, x_padding)
+    return y_idx, x_idx
+
 def positional_encoding(yx, config):
     '''
     Applies NeRF style positional encoding to the coordinate
