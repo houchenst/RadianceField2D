@@ -27,6 +27,7 @@ parser.add_argument("--epochs", type=int, default=1000)
 parser.add_argument("--lr", type=float, default=0.001)
 parser.add_argument("--batchsize", type=int, default=128)
 parser.add_argument("--save-frequency", type=int, default=100, help="Sets how frequently a reconstruction and state_dict are saved")
+parser.add_argument("--tunable-layers", default=[], action="append", help="Names of layers to be tuned. If empty, all layers are trained.")
 
 if __name__ == "__main__":
     parser.parse_args()

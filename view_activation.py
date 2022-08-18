@@ -3,12 +3,12 @@ import os
 
 import numpy as np
 from PIL import Image
-from train import setup
 from data import ImageDataset, pixel_to_continuous_coordinate, positional_encoding
 from parse import parser
 import torch
 import matplotlib.pyplot as plt
 import matplotlib
+import utils
 
 def get_coords(config, grid_sz):
     img = Image.open(config.imagepath)
@@ -53,7 +53,7 @@ def get_activations(net_in, net_act, name):
 
 if __name__ == "__main__":
     config = parser.parse_args()
-    model, _, _ = setup(config)
+    model, _, _, _ = utils.setup(config)
 
     grid_sz = 160
     grids, num_grids, grid_shapes = get_coords(config, grid_sz)
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     for j in range(config.n_layers-2):
         hidden_input[j + 1] = np.zeros(shape=config.hidden_size)
         hidden_act[j + 1] = np.zeros(shape=config.hidden_size)
-        model.layers[j+1].register_forward_hook(get_activations(hidden_input, hidden_act, j + 1))
+        model.base.layers[j+1].register_forward_hook(get_activations(hidden_input, hidden_act, j + 1))
 
     model.eval()
 

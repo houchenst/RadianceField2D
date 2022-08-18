@@ -12,28 +12,39 @@ from data import positional_encoding, pixel_to_continuous_coordinate
 from network import RadianceField2D, RadianceField2DPalette
 from data import ImageDataset
 
-def load_loss_history(config):
-    with open(os.path.join(config.expdir, "loss_history.txt"), 'r') as f:
+
+def load_history(config, type):
+    with open(os.path.join(config.expdir, type + "_history.txt"), 'r') as f:
         loss_history = json.loads(f.read())
     return loss_history
 
-def save_loss_history(config, loss_history):
-    with open(os.path.join(config.expdir, "loss_history.txt"), 'w') as f:
-        f.write(json.dumps(loss_history))
+
+def save_history(config, history, type):
+    with open(os.path.join(config.expdir, type + "_history.txt"), 'w') as f:
+        f.write(json.dumps(history))
 
 def plot_loss_curve(config, loss_dict):
     '''
     Plots the loss curve and writes to file
     '''
-    loss_history = load_loss_history(config)
-    loss_history['train_loss'] += loss_dict['train_loss']
-    loss_history['val_loss'] += loss_dict['val_loss']
-    save_loss_history(config, loss_history)
+    # loss_history = load_history(config, "loss")
+    # loss_history['train_loss'] += loss_dict['train_loss']
+    # loss_history['val_loss'] += loss_dict['val_loss']
+    # save_history(config, loss_history, "loss")
+    loss_history = loss_dict
     f, ax = plt.subplots()
     ax.plot([x for x in range(len(loss_history['train_loss']))], loss_history['train_loss'], color='b', label='train')
     ax.plot([x for x in range(len(loss_history['val_loss']))], loss_history['val_loss'], color='b', label='val')
     f.suptitle(config.expname + " Loss")
     plt.savefig(os.path.join(config.expdir, "loss_curves.png"))
+    plt.close()
+
+def plot_metrics_curve(config, dict, type):
+    f, ax = plt.subplots()
+    ax.plot([x for x in range(len(dict['train_' + type]))], dict['train_' + type], color='b', label='train')
+    ax.plot([x for x in range(len(dict['val_' + type]))], dict['val_' + type], color='r', label='val')
+    f.suptitle(config.expname + " " + type)
+    plt.savefig(os.path.join(config.expdir, type + "_curves.png"))
     plt.close()
 
 def render_image(model, config):
@@ -147,13 +158,26 @@ def setup(config):
         if config.palette:
             palette_optimizer.load_state_dict(torch.load(last_checkpoint, map_location=device)["palette_optimizer_state_dict"])
 
-    #Initialize loss history
     if not os.path.exists(os.path.join(config.expdir, "loss_history.txt")):
         loss_history = {}
         loss_history["train_loss"] = []
         loss_history["val_loss"] = []
         with open(os.path.join(config.expdir, "loss_history.txt"), 'w') as f:
             f.write(json.dumps(loss_history))
+
+    if not os.path.exists(os.path.join(config.expdir, "mse_history.txt")):
+        mse_history = {}
+        mse_history["train_mse"] = []
+        mse_history["val_mse"] = []
+        with open(os.path.join(config.expdir, "mse_history.txt"), 'w') as f:
+            f.write(json.dumps(mse_history))
+
+    if not os.path.exists(os.path.join(config.expdir, "ssim_history.txt")):
+        ssim_history = {}
+        ssim_history["train_ssim"] = []
+        ssim_history["val_ssim"] = []
+        with open(os.path.join(config.expdir, "ssim_history.txt"), 'w') as f:
+            f.write(json.dumps(ssim_history))
 
     #Make data loader
     dataset = ImageDataset(config)
