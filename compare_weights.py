@@ -14,6 +14,7 @@ def load_weights(exp_name):
         print(f"Could not find any checkpoints for experiment '{exp_name}'")
         exit(1)
     last_checkpoint = all_checkpoints[-1]
+    print(f"Loading checkpoint '{last_checkpoint}'")
     model_weights = torch.load(last_checkpoint, map_location=device)["model_state_dict"]
     return model_weights
 
